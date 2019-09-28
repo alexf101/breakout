@@ -10,8 +10,11 @@ export class Game {
     constructor(ctx: CanvasRenderingContext2D) {
         this.ctx = ctx;
         this.canvas = ctx.canvas;
+        this.reset();
+    }
+    reset() {
         this.ball = new TheBall(
-            ctx,
+            this.ctx,
             this.canvas.width / 2,
             this.canvas.height - 30
         );
@@ -19,14 +22,19 @@ export class Game {
             "linear",
             new LinearMotion(this.ball, 2 / 10, -2 / 10)
         );
+        this.start();
     }
     start() {
+        if (this.drawTimer) {
+            // Don't allow multiple timers to exist.
+            return;
+        }
         this.lastT = new Date().getTime();
         this.drawTimer = setInterval(() => this.step(), 10); // 100 fps
-        showCoords(this.ctx);
     }
     pause() {
         clearInterval(this.drawTimer);
+        this.drawTimer = null;
     }
     step() {
         const now = new Date().getTime();
@@ -34,12 +42,17 @@ export class Game {
         this.lastT = now;
 
         this.ball.step(dt);
+        this.clear();
         this.draw(dt);
+    }
+    clear() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
     draw(dt: number) {
         this.ball.draw();
         drawRect(this.ctx);
         drawBlueRect(this.ctx);
+        showCoords(this.ctx);
     }
 }
 
