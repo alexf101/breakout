@@ -7,10 +7,19 @@ export class Game {
     ball: TheBall;
     t: number;
     lastT: number;
+    rightKeyPressed: boolean = false;
+    leftKeyPressed: boolean = false;
+    paddle: ThePaddle;
     constructor(ctx: CanvasRenderingContext2D) {
         this.ctx = ctx;
         this.canvas = ctx.canvas;
         this.reset();
+        document.addEventListener("keydown", this.keyDownHandler, false);
+        document.addEventListener("keyup", this.keyUpHandler, false);
+    }
+    teardown() {
+        document.removeEventListener("keydown", this.keyDownHandler, false);
+        document.removeEventListener("keyup", this.keyUpHandler, false);
     }
     reset() {
         this.ball = new TheBall(
@@ -19,6 +28,11 @@ export class Game {
             this.canvas.height - 30
         );
         this.ball.motions.linear = new LinearMotion(this.ball, 2 / 10, -2 / 10);
+        this.paddle = new ThePaddle(
+            this.ctx,
+            (this.canvas.width - 10) / 2,
+            this.ctx.canvas.height - 75
+        );
         this.start();
     }
     start() {
@@ -39,6 +53,7 @@ export class Game {
         this.lastT = now;
 
         this.ball.step(dt);
+        this.paddle.step(dt);
         this.clear();
         this.draw(dt);
     }
@@ -47,9 +62,42 @@ export class Game {
     }
     draw(dt: number) {
         this.ball.draw();
-        drawRect(this.ctx);
+        this.paddle.draw();
         drawBlueRect(this.ctx);
         showCoords(this.ctx);
+    }
+    keyDownHandler = (key: KeyboardEvent) => {
+        if (key.key === "ArrowRight") {
+            this.rightKeyPressed = true;
+        } else if (key.key === "ArrowLeft") {
+            this.leftKeyPressed = true;
+        }
+        this.updateControlled();
+    };
+    keyUpHandler = (key: KeyboardEvent) => {
+        if (key.key === "ArrowRight") {
+            this.rightKeyPressed = false;
+        } else if (key.key === "ArrowLeft") {
+            this.leftKeyPressed = false;
+        }
+        this.updateControlled();
+    };
+    updateControlled() {
+        if (this.rightKeyPressed) {
+            this.paddle.motions.linear = new LinearMotion(
+                this.paddle,
+                7 / 10,
+                0
+            );
+        } else if (this.leftKeyPressed) {
+            this.paddle.motions.linear = new LinearMotion(
+                this.paddle,
+                -7 / 10,
+                0
+            );
+        } else {
+            this.paddle.motions.linear = null;
+        }
     }
 }
 
@@ -166,6 +214,18 @@ class TheBall extends CanvasObject {
     }
 }
 
+class ThePaddle extends CanvasObject {
+    paddleHeight = 10;
+    paddleWidth = 75;
+    draw() {
+        this.ctx.beginPath();
+        this.ctx.rect(this.x, this.y, this.paddleWidth, this.paddleHeight);
+        this.ctx.fillStyle = "#0095DD";
+        this.ctx.fill();
+        this.ctx.closePath();
+    }
+}
+
 function drawLine(
     ctx: CanvasRenderingContext2D,
     x: number,
@@ -177,14 +237,6 @@ function drawLine(
     ctx.moveTo(x, y);
     ctx.lineTo(u, v);
     ctx.stroke();
-}
-
-function drawRect(ctx: CanvasRenderingContext2D) {
-    ctx.beginPath();
-    ctx.rect(20, 40, 50, 50);
-    ctx.fillStyle = "#FF0000";
-    ctx.fill();
-    ctx.closePath();
 }
 
 function drawBlueRect(ctx: CanvasRenderingContext2D) {

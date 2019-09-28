@@ -26,6 +26,7 @@ export class CanvasGame extends React.Component<CanvasGameProps> {
                         } else {
                             if (this.game) {
                                 this.game.pause();
+                                this.game.teardown();
                             }
                         }
                     }}
