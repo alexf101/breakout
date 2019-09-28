@@ -18,10 +18,7 @@ export class Game {
             this.canvas.width / 2,
             this.canvas.height - 30
         );
-        this.ball.addMotion(
-            "linear",
-            new LinearMotion(this.ball, 2 / 10, -2 / 10)
-        );
+        this.ball.motions.linear = new LinearMotion(this.ball, 2 / 10, -2 / 10);
         this.start();
     }
     start() {
@@ -74,30 +71,30 @@ function showCoords(ctx: CanvasRenderingContext2D) {
 // The game framework
 
 abstract class CanvasObject {
-    motions: Map<string, Motion>;
+    motions: {
+        linear?: LinearMotion;
+    };
     x: number;
     y: number;
     ctx: CanvasRenderingContext2D;
     constructor(ctx: CanvasRenderingContext2D, x: number, y: number) {
         this.ctx = ctx;
         this.setPosition(x, y);
-        this.motions = new Map();
+        this.motions = {};
     }
     setPosition(x: number, y: number) {
         this.x = x;
         this.y = y;
     }
-    addMotion(name: string, motion: Motion) {
-        this.motions.set(name, motion);
-    }
-    getMotion(name: string) {
-        return this.motions.get(name);
-    }
     step(dt: number) {
-        this.motions.forEach((motion: Motion) => {
-            let [x, y] = motion.calculatePositionChange(this.x, this.y, dt);
+        if (this.motions.linear) {
+            let [x, y] = this.motions.linear.calculatePositionChange(
+                this.x,
+                this.y,
+                dt
+            );
             this.setPosition(x, y);
-        });
+        }
     }
     abstract draw(): void;
 }
@@ -132,12 +129,40 @@ class LinearMotion {
 // The game objects
 
 class TheBall extends CanvasObject {
+    radius = 10;
     draw() {
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, 20, 0, Math.PI * 2, false);
+        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
         this.ctx.fillStyle = "#0095DD";
         this.ctx.fill();
         this.ctx.closePath();
+    }
+
+    overlaps(x: number, y: number) {
+        // A circle overlaps the given point if it's within the
+        // radius of our center point.
+        // TODO: Implement this.
+    }
+
+    step(dt: number) {
+        super.step(dt);
+        this.bounceFromBoundaries();
+    }
+
+    bounceFromBoundaries() {
+        const lm = this.motions.linear;
+        if (this.x < this.radius) {
+            lm.setVelocity(-lm.dx, lm.dy);
+        }
+        if (this.x + this.radius >= this.ctx.canvas.width) {
+            lm.setVelocity(-lm.dx, lm.dy);
+        }
+        if (this.y < this.radius) {
+            lm.setVelocity(lm.dx, -lm.dy);
+        }
+        if (this.y + this.radius >= this.ctx.canvas.height) {
+            lm.setVelocity(lm.dx, -lm.dy);
+        }
     }
 }
 
