@@ -15,7 +15,10 @@ export class Game {
             this.canvas.width / 2,
             this.canvas.height - 30
         );
-        this.ball.addMotion("linear", new LinearMotion(this.ball, 2, -2));
+        this.ball.addMotion(
+            "linear",
+            new LinearMotion(this.ball, 2 / 10, -2 / 10)
+        );
     }
     start() {
         this.lastT = new Date().getTime();
