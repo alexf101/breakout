@@ -7,8 +7,7 @@ module.exports = {
     resolve: {
         extensions: [".ts", ".tsx", ".js"]
     },
-
-    entry: "./src/index.tsx",
+    entry: "./tests/index.ts",
     module: {
         rules: [
             {
@@ -30,7 +29,7 @@ module.exports = {
     },
 
     output: {
-        filename: "main.js"
+        filename: "test.js"
     },
 
     // When importing a module whose path matches one of the following, just
