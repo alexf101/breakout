@@ -83,7 +83,10 @@ export class Game {
         this.updateControlled();
     };
     updateControlled() {
-        if (this.rightKeyPressed) {
+        if (this.rightKeyPressed && this.leftKeyPressed) {
+            // If both keys are pressed, don't move the paddle.
+            this.paddle.motions.linear = null;
+        } else if (this.rightKeyPressed) {
             this.paddle.motions.linear = new LinearMotion(
                 this.paddle,
                 7 / 10,
