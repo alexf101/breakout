@@ -202,16 +202,22 @@ class TheBall extends CanvasObject {
 
     bounceFromBoundaries() {
         const lm = this.motions.linear;
-        if (this.x < this.radius) {
+        // Note: be careful not to only consider proximity to the edge,
+        // as the ball can become stuck if it somehow gets too close.
+        // left edge, moving left
+        if (this.x < this.radius && lm.dx < 0) {
             lm.setVelocity(-lm.dx, lm.dy);
         }
-        if (this.x + this.radius >= this.ctx.canvas.width) {
+        // right edge, moving right
+        if (this.x + this.radius >= this.ctx.canvas.width && lm.dx > 0) {
             lm.setVelocity(-lm.dx, lm.dy);
         }
-        if (this.y < this.radius) {
+        // top edge, moving up
+        if (this.y < this.radius && lm.dy < 0) {
             lm.setVelocity(lm.dx, -lm.dy);
         }
-        if (this.y + this.radius >= this.ctx.canvas.height) {
+        // top edge, moving down
+        if (this.y + this.radius >= this.ctx.canvas.height && lm.dy > 0) {
             lm.setVelocity(lm.dx, -lm.dy);
         }
     }
