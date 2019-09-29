@@ -10,8 +10,7 @@
         "styled-components": "^4.4.0"
     },
     "scripts": {
-        "test": "mocha -r ts-node/register tests/**/*.test.ts",
-        "coverage": "nyc -a -r lcov -e .ts -x \"*.test.ts\" npm run test"
+        "test": "yarn run webpack --config webpack.test.js && open test.html"
     },
     "devDependencies": {
         "@types/assert": "^1.4.3",
