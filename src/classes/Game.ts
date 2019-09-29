@@ -21,11 +21,15 @@ export class Game {
         document.removeEventListener("keydown", this.keyDownHandler, false);
         document.removeEventListener("keyup", this.keyUpHandler, false);
     }
+    ballHitBottom = () => {
+        this.pause();
+    };
     reset() {
         this.ball = new TheBall(
             this.ctx,
             this.canvas.width / 2,
-            this.canvas.height - 30
+            this.canvas.height - 100,
+            this.ballHitBottom
         );
         this.ball.motions.linear = new LinearMotion(this.ball, 2 / 10, -2 / 10);
         this.paddle = new ThePaddle(
@@ -54,6 +58,21 @@ export class Game {
 
         this.ball.step(dt);
         this.paddle.step(dt);
+
+        // Interactions between multiple game objects
+        // Is the ball overlapping the paddle?
+        if (
+            this.ball.x + this.ball.radius > this.paddle.x &&
+            this.ball.x < this.paddle.x + this.paddle.width &&
+            this.ball.y + this.ball.radius >
+                this.paddle.y + this.paddle.height &&
+            this.ball.y < this.paddle.y + this.paddle.height &&
+            // Only bounce if the ball is moving downwards! This prevents the ball from getting trapped inside the paddle if you move over it from the edge.
+            this.ball.motions.linear.dy > 0
+        ) {
+            this.ball.motions.linear.bounceY();
+        }
+
         this.clear();
         this.draw(dt);
     }
@@ -168,6 +187,12 @@ class LinearMotion {
         this.dx = dx;
         this.dy = dy;
     }
+    bounceX() {
+        this.setVelocity(-this.dx, this.dy);
+    }
+    bounceY() {
+        this.setVelocity(this.dx, -this.dy);
+    }
     calculatePositionChange(
         x: number,
         y: number,
@@ -180,6 +205,16 @@ class LinearMotion {
 // The game objects
 
 class TheBall extends CanvasObject {
+    ballHitBottomCallback: () => void;
+    constructor(
+        ctx: CanvasRenderingContext2D,
+        x: number,
+        y: number,
+        ballHitBottomCallback: () => void
+    ) {
+        super(ctx, x, y);
+        this.ballHitBottomCallback = ballHitBottomCallback;
+    }
     radius = 10;
     draw() {
         this.ctx.beginPath();
@@ -206,29 +241,30 @@ class TheBall extends CanvasObject {
         // as the ball can become stuck if it somehow gets too close.
         // left edge, moving left
         if (this.x < this.radius && lm.dx < 0) {
-            lm.setVelocity(-lm.dx, lm.dy);
+            lm.bounceX();
         }
         // right edge, moving right
         if (this.x + this.radius >= this.ctx.canvas.width && lm.dx > 0) {
-            lm.setVelocity(-lm.dx, lm.dy);
+            lm.bounceX();
         }
         // top edge, moving up
         if (this.y < this.radius && lm.dy < 0) {
-            lm.setVelocity(lm.dx, -lm.dy);
+            lm.bounceY();
         }
-        // top edge, moving down
+        // bottom edge, moving down
         if (this.y + this.radius >= this.ctx.canvas.height && lm.dy > 0) {
-            lm.setVelocity(lm.dx, -lm.dy);
+            lm.bounceY();
+            this.ballHitBottomCallback();
         }
     }
 }
 
 class ThePaddle extends CanvasObject {
-    paddleHeight = 10;
-    paddleWidth = 75;
+    height = 10;
+    width = 75;
     draw() {
         this.ctx.beginPath();
-        this.ctx.rect(this.x, this.y, this.paddleWidth, this.paddleHeight);
+        this.ctx.rect(this.x, this.y, this.width, this.height);
         this.ctx.fillStyle = "#0095DD";
         this.ctx.fill();
         this.ctx.closePath();
