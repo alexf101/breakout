@@ -90,6 +90,16 @@ export class Game {
             this.rightKeyPressed = true;
         } else if (key.key === "ArrowLeft") {
             this.leftKeyPressed = true;
+        } else if (key.key === " ") {
+            if (this.drawTimer) {
+                this.pause();
+            } else {
+                this.start();
+            }
+        } else {
+            if ((window as any).DEBUG) {
+                console.log("key pressed: ", key.key);
+            }
         }
         this.updateControlled();
     };
