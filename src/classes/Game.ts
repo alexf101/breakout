@@ -105,17 +105,21 @@ export class Game {
                 this.bricks[Math.floor(brickCoordX)] &&
                 this.bricks[Math.floor(brickCoordX)][Math.floor(brickCoordY)]
             ) {
+                let candidateBrick = this.bricks[Math.floor(brickCoordX)][
+                    Math.floor(brickCoordY)
+                ];
                 // The actual brick only occupies the first part of the brick coordinate that isn't padding.
+                // Now that we know which brick is a potential hit, we may as well switch back to canvas coordinates to
+                // keep the math simple.
+                // The left and top edges are guaranteed to be overlapping at this point, so we only need to worry about the right and bottom edges.
                 if (
-                    brickCoordX % 1 <
-                        Brick.width / (Brick.width + Brick.padding) &&
-                    brickCoordY % 1 <
-                        Brick.height / (Brick.height + Brick.padding)
+                    !candidateBrick.isHit &&
+                    this.ball.x < candidateBrick.x + Brick.width &&
+                    this.ball.y < candidateBrick.y + Brick.height
                 ) {
-                    // Looks like a hit from the X axis point of view!
-                    console.log("brickCoordX: ", brickCoordX); // XX
-                    console.log("brickCoordY: ", brickCoordY); // XX
-                    this.pause();
+                    // We hit! Mark the brick as struck so that we won't continue to render it or consider it for collisions, and bounce the ball.
+                    candidateBrick.isHit = true;
+                    this.ball.motions.linear.bounceY();
                 }
             }
         }
@@ -128,7 +132,13 @@ export class Game {
     draw(dt: number) {
         this.ball.draw();
         this.paddle.draw();
-        this.bricks.forEach(row => row.forEach(brick => brick.draw()));
+        this.bricks.forEach(col =>
+            col.forEach(brick => {
+                if (!brick.isHit) {
+                    brick.draw();
+                }
+            })
+        );
         showCoords(this.ctx);
     }
     keyDownHandler = (key: KeyboardEvent) => {
@@ -342,6 +352,7 @@ class Brick extends CanvasObject {
     static width = 75;
     static height = 20;
     static padding = 10;
+    isHit: boolean = false;
     draw() {
         this.ctx.beginPath();
         this.ctx.rect(this.x, this.y, Brick.width, Brick.height);
