@@ -43,7 +43,7 @@ export class Game {
         this.paddle = new Paddle(
             this.ctx,
             (this.canvas.width - 10) / 2,
-            this.ctx.canvas.height - 75
+            this.ctx.canvas.height - Paddle.height
         );
         this.bricks = [];
         for (let i = 0; i < Game.brickColumnCount; i++) {
@@ -81,9 +81,9 @@ export class Game {
         // Interactions between multiple game objects
         // Is the ball overlapping the paddle?
         if (
-            this.ball.x + this.ball.radius > this.paddle.x &&
+            this.ball.x > this.paddle.x &&
             this.ball.x < this.paddle.x + Paddle.width &&
-            this.ball.y + this.ball.radius > this.paddle.y + Paddle.height &&
+            this.ball.y + this.ball.radius > this.paddle.y &&
             this.ball.y < this.paddle.y + Paddle.height &&
             // Only bounce if the ball is moving downwards! This prevents the ball from getting trapped inside the paddle if you move over it from the edge.
             this.ball.motions.linear.dy > 0
