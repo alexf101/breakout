@@ -4,12 +4,20 @@ export class Game {
     ctx: CanvasRenderingContext2D;
     drawTimer: number;
     canvas: HTMLCanvasElement;
-    ball: TheBall;
+    ball: Ball;
     t: number;
     lastT: number;
     rightKeyPressed: boolean = false;
     leftKeyPressed: boolean = false;
-    paddle: ThePaddle;
+    paddle: Paddle;
+    bricks: Brick[][];
+
+    // Brick layout config.
+    static brickRowCount: number = 3;
+    static brickColumnCount: number = 5;
+    static brickOffsetTop: number = 30;
+    static brickOffsetLeft: number = 30;
+
     constructor(ctx: CanvasRenderingContext2D) {
         this.ctx = ctx;
         this.canvas = ctx.canvas;
@@ -25,18 +33,29 @@ export class Game {
         this.pause();
     };
     reset() {
-        this.ball = new TheBall(
+        this.ball = new Ball(
             this.ctx,
             this.canvas.width / 2,
             this.canvas.height - 100,
             this.ballHitBottom
         );
         this.ball.motions.linear = new LinearMotion(this.ball, 2 / 10, -2 / 10);
-        this.paddle = new ThePaddle(
+        this.paddle = new Paddle(
             this.ctx,
             (this.canvas.width - 10) / 2,
             this.ctx.canvas.height - 75
         );
+        this.bricks = [];
+        for (let i = 0; i < Game.brickColumnCount; i++) {
+            this.bricks.push([]);
+            for (let j = 0; j < Game.brickRowCount; j++) {
+                this.bricks[i][j] = new Brick(
+                    this.ctx,
+                    i * (Brick.width + Brick.padding) + Game.brickOffsetTop,
+                    j * (Brick.height + Brick.padding) + Game.brickOffsetLeft
+                );
+            }
+        }
         this.start();
     }
     start() {
@@ -63,10 +82,9 @@ export class Game {
         // Is the ball overlapping the paddle?
         if (
             this.ball.x + this.ball.radius > this.paddle.x &&
-            this.ball.x < this.paddle.x + this.paddle.width &&
-            this.ball.y + this.ball.radius >
-                this.paddle.y + this.paddle.height &&
-            this.ball.y < this.paddle.y + this.paddle.height &&
+            this.ball.x < this.paddle.x + Paddle.width &&
+            this.ball.y + this.ball.radius > this.paddle.y + Paddle.height &&
+            this.ball.y < this.paddle.y + Paddle.height &&
             // Only bounce if the ball is moving downwards! This prevents the ball from getting trapped inside the paddle if you move over it from the edge.
             this.ball.motions.linear.dy > 0
         ) {
@@ -82,7 +100,7 @@ export class Game {
     draw(dt: number) {
         this.ball.draw();
         this.paddle.draw();
-        drawBlueRect(this.ctx);
+        this.bricks.forEach(row => row.forEach(brick => brick.draw()));
         showCoords(this.ctx);
     }
     keyDownHandler = (key: KeyboardEvent) => {
@@ -214,7 +232,7 @@ class LinearMotion {
 
 // The game objects
 
-class TheBall extends CanvasObject {
+class Ball extends CanvasObject {
     ballHitBottomCallback: () => void;
     constructor(
         ctx: CanvasRenderingContext2D,
@@ -269,15 +287,15 @@ class TheBall extends CanvasObject {
     }
 }
 
-class ThePaddle extends CanvasObject {
-    height = 10;
-    width = 75;
+class Paddle extends CanvasObject {
+    static height = 10;
+    static width = 75;
 
     step(dt: number) {
         super.step(dt);
         // The paddle isn't allowed to move past the edges.
-        if (this.x + this.width > this.ctx.canvas.width) {
-            this.x = this.ctx.canvas.width - this.width;
+        if (this.x + Paddle.width > this.ctx.canvas.width) {
+            this.x = this.ctx.canvas.width - Paddle.width;
         } else if (this.x < 0) {
             this.x = 0;
         }
@@ -285,13 +303,27 @@ class ThePaddle extends CanvasObject {
 
     draw() {
         this.ctx.beginPath();
-        this.ctx.rect(this.x, this.y, this.width, this.height);
+        this.ctx.rect(this.x, this.y, Paddle.width, Paddle.height);
         this.ctx.fillStyle = "#0095DD";
         this.ctx.fill();
         this.ctx.closePath();
     }
 }
 
+class Brick extends CanvasObject {
+    static width = 75;
+    static height = 20;
+    static padding = 10;
+    draw() {
+        this.ctx.beginPath();
+        this.ctx.rect(this.x, this.y, Brick.width, Brick.height);
+        this.ctx.fillStyle = "#0095DD";
+        this.ctx.fill();
+        this.ctx.closePath();
+    }
+}
+
+// Debugging graph.
 function drawLine(
     ctx: CanvasRenderingContext2D,
     x: number,
@@ -303,12 +335,4 @@ function drawLine(
     ctx.moveTo(x, y);
     ctx.lineTo(u, v);
     ctx.stroke();
-}
-
-function drawBlueRect(ctx: CanvasRenderingContext2D) {
-    ctx.beginPath();
-    ctx.rect(160, 10, 100, 40);
-    ctx.strokeStyle = "rgba(0, 0, 255, 0.5)";
-    ctx.stroke();
-    ctx.closePath();
 }
