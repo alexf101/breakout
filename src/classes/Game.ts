@@ -272,6 +272,17 @@ class TheBall extends CanvasObject {
 class ThePaddle extends CanvasObject {
     height = 10;
     width = 75;
+
+    step(dt: number) {
+        super.step(dt);
+        // The paddle isn't allowed to move past the edges.
+        if (this.x + this.width > this.ctx.canvas.width) {
+            this.x = this.ctx.canvas.width - this.width;
+        } else if (this.x < 0) {
+            this.x = 0;
+        }
+    }
+
     draw() {
         this.ctx.beginPath();
         this.ctx.rect(this.x, this.y, this.width, this.height);
