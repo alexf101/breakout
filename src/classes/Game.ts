@@ -1,5 +1,7 @@
 import { number } from "prop-types";
 
+declare const window: { DEBUG: boolean | undefined };
+// window.DEBUG = true;
 export class Game {
     ctx: CanvasRenderingContext2D;
     drawTimer: number;
@@ -11,6 +13,7 @@ export class Game {
     leftKeyPressed: boolean = false;
     paddle: Paddle;
     bricks: Brick[][];
+    score: Score;
 
     // Brick layout config.
     static brickRowCount: number = 3;
@@ -24,10 +27,12 @@ export class Game {
         this.reset();
         document.addEventListener("keydown", this.keyDownHandler, false);
         document.addEventListener("keyup", this.keyUpHandler, false);
+        document.addEventListener("click", this.clickHandler, false);
     }
     teardown() {
         document.removeEventListener("keydown", this.keyDownHandler, false);
         document.removeEventListener("keyup", this.keyUpHandler, false);
+        document.removeEventListener("click", this.clickHandler, false);
     }
     ballHitBottom = () => {
         this.pause();
@@ -56,6 +61,7 @@ export class Game {
                 );
             }
         }
+        this.score = new Score(this.ctx, 8, 20);
         this.start();
     }
     start() {
@@ -120,11 +126,35 @@ export class Game {
                     // We hit! Mark the brick as struck so that we won't continue to render it or consider it for collisions, and bounce the ball.
                     candidateBrick.isHit = true;
                     this.ball.motions.linear.bounceY();
+                    this.score.incrementScore();
+
+                    // It's unsatisfying to display the victory message
+                    // before drawing the empty final brick, so defer execution
+                    // of this until after we've finished drawing.
+                    setTimeout(() => {
+                        if (this.weHaveWon()) {
+                            this.clear();
+                            alert("Congratulations! You win!");
+                        }
+                    }, 100);
                 }
             }
         }
+
         this.clear();
         this.draw(dt);
+    }
+    weHaveWon() {
+        for (let i = 0; i < this.bricks.length; i++) {
+            const col = this.bricks[i];
+            for (let j = 0; j < col.length; j++) {
+                const brick = col[j];
+                if (!brick.isHit) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
     clear() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -139,7 +169,10 @@ export class Game {
                 }
             })
         );
-        showCoords(this.ctx);
+        this.score.draw();
+        if (window.DEBUG) {
+            showCoords(this.ctx);
+        }
     }
     keyDownHandler = (key: KeyboardEvent) => {
         if (key.key === "ArrowRight") {
@@ -153,7 +186,7 @@ export class Game {
                 this.start();
             }
         } else {
-            if ((window as any).DEBUG) {
+            if (window.DEBUG) {
                 console.log("key pressed: ", key.key);
             }
         }
@@ -166,6 +199,15 @@ export class Game {
             this.leftKeyPressed = false;
         }
         this.updateControlled();
+    };
+    clickHandler = (mouseevent: MouseEvent) => {
+        if (window.DEBUG) {
+            console.log("mouseevent: ", mouseevent); // XX
+            const rect = this.canvas.getBoundingClientRect();
+            const x = mouseevent.clientX - rect.left;
+            const y = mouseevent.clientY - rect.top;
+            this.ball.setPosition(x, y);
+        }
     };
     updateControlled() {
         if (this.rightKeyPressed && this.leftKeyPressed) {
@@ -186,21 +228,6 @@ export class Game {
         } else {
             this.paddle.motions.linear = null;
         }
-    }
-}
-
-function showCoords(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
-    ctx.font = "8px";
-    ctx.lineWidth = 1;
-    for (let i = 20; i < ctx.canvas.width; i += 20) {
-        ctx.fillText(i.toString(), i, 10);
-        drawLine(ctx, i, 20, i, ctx.canvas.height);
-    }
-    for (let j = 0; j < ctx.canvas.height; j += 20) {
-        ctx.fillText(j.toString(), 0, j);
-        drawLine(ctx, 0, j, ctx.canvas.width, j);
     }
 }
 
@@ -362,7 +389,35 @@ class Brick extends CanvasObject {
     }
 }
 
+class Score extends CanvasObject {
+    score: number = 0;
+    incrementScore() {
+        this.score += 10;
+    }
+    draw() {
+        this.ctx.font = "16px Arial";
+        this.ctx.fillStyle = "#0095DD";
+        this.ctx.fillText("Score: " + this.score.toString(), this.x, this.y);
+    }
+}
+
 // Debugging graph.
+
+function showCoords(ctx: CanvasRenderingContext2D) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.font = "8px Sans";
+    ctx.lineWidth = 1;
+    for (let i = 20; i < ctx.canvas.width; i += 20) {
+        ctx.fillText(i.toString(), i, 10);
+        drawLine(ctx, i, 20, i, ctx.canvas.height);
+    }
+    for (let j = 0; j < ctx.canvas.height; j += 20) {
+        ctx.fillText(j.toString(), 0, j);
+        drawLine(ctx, 0, j, ctx.canvas.width, j);
+    }
+}
+
 function drawLine(
     ctx: CanvasRenderingContext2D,
     x: number,
