@@ -91,6 +91,34 @@ export class Game {
             this.ball.motions.linear.bounceY();
         }
 
+        // Is the ball overlapping a brick?
+        // Convert ball position in to unit brick coordinate system.
+        if (this.ball.y < 110) {
+            let brickCoordY =
+                (this.ball.y - Game.brickOffsetTop) /
+                (Brick.height + Brick.padding);
+            let brickCoordX =
+                (this.ball.x - Game.brickOffsetLeft) /
+                (Brick.width + Brick.padding);
+            // Does a brick exist here?
+            if (
+                this.bricks[Math.floor(brickCoordX)] &&
+                this.bricks[Math.floor(brickCoordX)][Math.floor(brickCoordY)]
+            ) {
+                // The actual brick only occupies the first part of the brick coordinate that isn't padding.
+                if (
+                    brickCoordX % 1 <
+                        Brick.width / (Brick.width + Brick.padding) &&
+                    brickCoordY % 1 <
+                        Brick.height / (Brick.height + Brick.padding)
+                ) {
+                    // Looks like a hit from the X axis point of view!
+                    console.log("brickCoordX: ", brickCoordX); // XX
+                    console.log("brickCoordY: ", brickCoordY); // XX
+                    this.pause();
+                }
+            }
+        }
         this.clear();
         this.draw(dt);
     }
