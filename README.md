@@ -14,3 +14,9 @@ yarn run webpack --watch
 ```
 open dist/index.html
 ```
+
+## Developing
+
+The game code is in the creatively named file src/classes/Game.ts.
+
+The React wrapper at src/components/CanvasGame.tsx renders the canvas and a few buttons to pause/play/reset the game. Any other non-canvas UI features should go there.
