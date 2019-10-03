@@ -4,9 +4,13 @@ Educating myself by making a clone of Breakout using native JS and canvas, loose
 
 ## Build
 
+```
 yarn install
 yarn run webpack --watch
+```
 
 ## Run
 
+```
 open dist/index.html
+```
