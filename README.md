@@ -12,7 +12,7 @@ yarn run webpack --watch
 ## Run
 
 ```
-open dist/index.html
+open index.html
 ```
 
 ## Developing
