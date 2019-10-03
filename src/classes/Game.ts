@@ -202,11 +202,13 @@ export class Game {
     };
     clickHandler = (mouseevent: MouseEvent) => {
         if (window.DEBUG) {
-            console.log("mouseevent: ", mouseevent); // XX
+            console.log("mouseevent: ", mouseevent);
             const rect = this.canvas.getBoundingClientRect();
             const x = mouseevent.clientX - rect.left;
             const y = mouseevent.clientY - rect.top;
-            this.ball.setPosition(x, y);
+            if (x < this.canvas.width && y < this.canvas.height) {
+                this.ball.setPosition(x, y);
+            }
         }
     };
     updateControlled() {

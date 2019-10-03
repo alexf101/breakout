@@ -5,6 +5,8 @@ import { Game } from "../classes/Game";
 
 export interface CanvasGameProps {}
 
+declare const window: { DEBUG: boolean | undefined };
+
 const Canvas = styled.canvas`
     // width: 480px;
     // height: 320px;
@@ -40,6 +42,22 @@ export class CanvasGame extends React.Component<CanvasGameProps> {
                 <button onClick={() => this.game && this.game.reset()}>
                     restart
                 </button>
+                <button
+                    onClick={() => {
+                        window.DEBUG = !window.DEBUG;
+                    }}
+                >
+                    toggle debug mode
+                </button>
+                <p>Press spacebar to pause and play.</p>
+                <p>
+                    When debug mode is active, click anywhere in the canvas to
+                    position the ball there.
+                </p>
+                <p>
+                    The game will pause if the ball hits the bottom of the
+                    screen (eventually this will also cause a loss of a life).
+                </p>
             </div>
         );
     }
