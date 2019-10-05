@@ -83,7 +83,13 @@ export class Game {
 
         this.ball.step(dt);
         this.paddle.step(dt);
+        this.paddleBallInteraction();
+        this.ballBrickInteraction();
 
+        this.clear();
+        this.draw(dt);
+    }
+    paddleBallInteraction() {
         // Interactions between multiple game objects
         // Is the ball overlapping the paddle?
         if (
@@ -96,7 +102,8 @@ export class Game {
         ) {
             this.ball.motions.linear.bounceY();
         }
-
+    }
+    ballBrickInteraction() {
         // Is the ball overlapping a brick?
         // Convert ball position in to unit brick coordinate system.
         if (this.ball.y < 110) {
@@ -140,9 +147,6 @@ export class Game {
                 }
             }
         }
-
-        this.clear();
-        this.draw(dt);
     }
     weHaveWon() {
         for (let i = 0; i < this.bricks.length; i++) {
