@@ -100,6 +100,19 @@ export class Game {
             // Only bounce if the ball is moving downwards! This prevents the ball from getting trapped inside the paddle if you move over it from the edge.
             this.ball.motions.linear.dy > 0
         ) {
+            // Accelerate the motion if we hit near the edges.
+            // Divide the paddle in to four pieces.
+            const divider = Paddle.width / 8;
+            const accelerationScale = 0.1;
+            if (this.ball.x < this.paddle.x + divider) {
+                this.ball.motions.linear.accelerate(accelerationScale * -2, 0);
+            } else if (this.ball.x < this.paddle.x + divider * 2) {
+                this.ball.motions.linear.accelerate(accelerationScale * -1, 0);
+            } else if (this.ball.x > this.paddle.x + divider * 7) {
+                this.ball.motions.linear.accelerate(accelerationScale * 1, 0);
+            } else if (this.ball.x > this.paddle.x + divider * 6) {
+                this.ball.motions.linear.accelerate(accelerationScale * 2, 0);
+            }
             this.ball.motions.linear.bounceY();
         }
     }
@@ -142,6 +155,7 @@ export class Game {
                         if (this.weHaveWon()) {
                             this.clear();
                             alert("Congratulations! You win!");
+                            this.reset();
                         }
                     }, 100);
                 }
@@ -285,6 +299,9 @@ class LinearMotion {
     setVelocity(dx: number, dy: number) {
         this.dx = dx;
         this.dy = dy;
+    }
+    accelerate(dx: number, dy: number) {
+        this.setVelocity(this.dx + dx, this.dy + dy);
     }
     bounceX() {
         this.setVelocity(-this.dx, this.dy);
