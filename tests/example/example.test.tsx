@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import { Game, CanvasObject } from "../../src/classes/Game";
+import { Game, CanvasObject } from "../../src/classes/NativeGame";
 import * as ReactDOM from "react-dom";
 import { CanvasGame } from "../../src/components/CanvasGame";
 import React = require("react");

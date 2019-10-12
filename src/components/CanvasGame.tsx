@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 
-import { Game } from "../classes/Game";
+import { Game } from "../classes/NativeGame";
 
 export interface CanvasGameProps {}
 
