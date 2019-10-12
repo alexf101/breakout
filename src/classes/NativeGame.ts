@@ -6,13 +6,13 @@ declare const window: {
     ALAN: boolean | undefined;
 };
 
-// window.TRADITIONAL = true;
-window.ALAN = true;
+window.TRADITIONAL = true;
+// window.ALAN = true;
 
 // window.DEBUG = true;
 export class Game {
     ctx: CanvasRenderingContext2D;
-    drawTimer: number;
+    active: boolean = false;
     canvas: HTMLCanvasElement;
     ball: Ball;
     t: number;
@@ -74,16 +74,16 @@ export class Game {
         this.start();
     }
     start() {
-        if (this.drawTimer) {
+        if (this.active) {
             // Don't allow multiple timers to exist.
             return;
         }
         this.lastT = new Date().getTime();
-        this.drawTimer = setInterval(() => this.step(), 10); // 100 fps
+        this.active = true;
+        this.step();
     }
     pause() {
-        clearInterval(this.drawTimer);
-        this.drawTimer = null;
+        this.active = false;
     }
     step(testOnlyDtOverride: number = null) {
         let dt;
@@ -102,6 +102,9 @@ export class Game {
 
         this.clear();
         this.draw(dt);
+        if (this.active) {
+            requestAnimationFrame(() => this.step());
+        }
     }
     paddleBallInteraction() {
         // Interactions between multiple game objects
@@ -251,7 +254,7 @@ export class Game {
         } else if (["ArrowLeft", "a"].includes(key.key)) {
             this.leftKeyPressed = true;
         } else if (key.key === " ") {
-            if (this.drawTimer) {
+            if (this.active) {
                 this.pause();
             } else {
                 this.start();
