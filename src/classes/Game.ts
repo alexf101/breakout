@@ -57,7 +57,7 @@ export class Game {
         this.paddle = new Paddle(
             this.ctx,
             (this.canvas.width - 10) / 2,
-            this.ctx.canvas.height - Paddle.height
+            this.ctx.canvas.height - Paddle.height - 200
         );
         this.bricks = [];
         for (let i = 0; i < Game.brickColumnCount; i++) {
@@ -143,23 +143,25 @@ export class Game {
                 this.ball.motions.linear.bounceY();
             } else if (window.ALAN) {
                 // I think this is right for a left-to-right collision.
-                const paddleAngle = 0; // Math.PI / 30; // ~18 degrees.
+                const paddleAngle = -this.paddle.angle; //Math.PI / 30; // ~18 degrees.
                 // figure out angle of incoming ball.
                 // canvas coordinates are weird, I'm more used to cartesian.
                 // the only difference is the direction of the y axis, hence the
                 // - y in the equation below.
-                const impactAngle = Math.atan(
+                let impactAngle = Math.atan(
                     -this.ball.motions.linear.dy / this.ball.motions.linear.dx
                 );
-                const resultingAngle =
-                    impactAngle + (1 / 2) * Math.PI + paddleAngle * 2;
-                const newx = Math.cos(resultingAngle);
+                impactAngle -= paddleAngle;
+                const resultingAngle = impactAngle + (1 / 2) * Math.PI;
+                let newx = Math.cos(resultingAngle);
                 // Again, negative sign for cartesian vs canvas coordinates.
-                const newy = -Math.sin(resultingAngle);
+                let newy = -Math.sin(resultingAngle);
                 const magnitude = Math.sqrt(
                     this.ball.motions.linear.dx ** 2 +
                         this.ball.motions.linear.dy ** 2
                 );
+                // Clamp: the new y velocity must be negative.
+                if (newy > -0.1) newy = -0.1;
                 this.ball.motions.linear.setVelocity(
                     newx * magnitude,
                     newy * magnitude
@@ -431,6 +433,7 @@ class Ball extends CanvasObject {
 class Paddle extends CanvasObject {
     static height = 10;
     static width = 75;
+    angle: number = 0;
 
     step(dt: number) {
         super.step(dt);
@@ -444,10 +447,31 @@ class Paddle extends CanvasObject {
 
     draw() {
         this.ctx.beginPath();
-        this.ctx.rect(this.x, this.y, Paddle.width, Paddle.height);
+        if (window.ALAN) {
+            this.ctx.save();
+            if (this.motions.linear && this.motions.linear.dx > 0) {
+                this.ctx.translate(this.x, this.y - Paddle.height);
+                this.angle = Math.PI / 16;
+                this.ctx.rotate(this.angle);
+                this.ctx.rect(0, 0, Paddle.width, Paddle.height);
+            } else if (this.motions.linear && this.motions.linear.dx < 0) {
+                this.ctx.translate(this.x, this.y);
+                this.angle = -Math.PI / 16;
+                this.ctx.rotate(this.angle);
+                this.ctx.rect(0, 0, Paddle.width, Paddle.height);
+            } else {
+                this.angle = 0;
+                this.ctx.rect(this.x, this.y, Paddle.width, Paddle.height);
+            }
+        } else {
+            this.ctx.rect(this.x, this.y, Paddle.width, Paddle.height);
+        }
         this.ctx.fillStyle = "#0095DD";
         this.ctx.fill();
         this.ctx.closePath();
+        if (window.ALAN) {
+            this.ctx.restore();
+        }
     }
 }
 

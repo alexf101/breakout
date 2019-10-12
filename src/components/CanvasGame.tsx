@@ -19,8 +19,8 @@ export class CanvasGame extends React.Component<CanvasGameProps> {
         return (
             <div>
                 <Canvas
-                    width={480}
-                    height={320}
+                    width={680}
+                    height={520}
                     ref={canvasEl => {
                         if (canvasEl) {
                             this.game = new Game(canvasEl.getContext("2d"));
