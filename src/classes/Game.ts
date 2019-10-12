@@ -1,6 +1,14 @@
 import { number } from "prop-types";
 
-declare const window: { DEBUG: boolean | undefined };
+declare const window: {
+    DEBUG: boolean | undefined;
+    TRADITIONAL: boolean | undefined;
+    ALAN: boolean | undefined;
+};
+
+// window.TRADITIONAL = true;
+window.ALAN = true;
+
 // window.DEBUG = true;
 export class Game {
     ctx: CanvasRenderingContext2D;
@@ -35,6 +43,7 @@ export class Game {
         document.removeEventListener("click", this.clickHandler, false);
     }
     ballHitBottom = () => {
+        this.score.decrementScoreBy(100);
         this.pause();
     };
     reset() {
@@ -76,10 +85,15 @@ export class Game {
         clearInterval(this.drawTimer);
         this.drawTimer = null;
     }
-    step() {
-        const now = new Date().getTime();
-        const dt = now - this.lastT;
-        this.lastT = now;
+    step(testOnlyDtOverride: number = null) {
+        let dt;
+        if (typeof testOnlyDtOverride == "number") {
+            dt = testOnlyDtOverride;
+        } else {
+            const now = new Date().getTime();
+            dt = now - this.lastT;
+            this.lastT = now;
+        }
 
         this.ball.step(dt);
         this.paddle.step(dt);
@@ -100,20 +114,59 @@ export class Game {
             // Only bounce if the ball is moving downwards! This prevents the ball from getting trapped inside the paddle if you move over it from the edge.
             this.ball.motions.linear.dy > 0
         ) {
-            // Accelerate the motion if we hit near the edges.
-            // Divide the paddle in to four pieces.
-            const divider = Paddle.width / 8;
-            const accelerationScale = 0.1;
-            if (this.ball.x < this.paddle.x + divider) {
-                this.ball.motions.linear.accelerate(accelerationScale * -2, 0);
-            } else if (this.ball.x < this.paddle.x + divider * 2) {
-                this.ball.motions.linear.accelerate(accelerationScale * -1, 0);
-            } else if (this.ball.x > this.paddle.x + divider * 7) {
-                this.ball.motions.linear.accelerate(accelerationScale * 1, 0);
-            } else if (this.ball.x > this.paddle.x + divider * 6) {
-                this.ball.motions.linear.accelerate(accelerationScale * 2, 0);
+            if (window.TRADITIONAL) {
+                // Accelerate the motion if we hit near the edges.
+                // Divide the paddle in to four pieces.
+                const divider = Paddle.width / 8;
+                const accelerationScale = 0.1;
+                if (this.ball.x < this.paddle.x + divider) {
+                    this.ball.motions.linear.accelerate(
+                        accelerationScale * -2,
+                        0
+                    );
+                } else if (this.ball.x < this.paddle.x + divider * 2) {
+                    this.ball.motions.linear.accelerate(
+                        accelerationScale * -1,
+                        0
+                    );
+                } else if (this.ball.x > this.paddle.x + divider * 7) {
+                    this.ball.motions.linear.accelerate(
+                        accelerationScale * 1,
+                        0
+                    );
+                } else if (this.ball.x > this.paddle.x + divider * 6) {
+                    this.ball.motions.linear.accelerate(
+                        accelerationScale * 2,
+                        0
+                    );
+                }
+                this.ball.motions.linear.bounceY();
+            } else if (window.ALAN) {
+                // I think this is right for a left-to-right collision.
+                const paddleAngle = 0; // Math.PI / 30; // ~18 degrees.
+                // figure out angle of incoming ball.
+                // canvas coordinates are weird, I'm more used to cartesian.
+                // the only difference is the direction of the y axis, hence the
+                // - y in the equation below.
+                const impactAngle = Math.atan(
+                    -this.ball.motions.linear.dy / this.ball.motions.linear.dx
+                );
+                const resultingAngle =
+                    impactAngle + (1 / 2) * Math.PI + paddleAngle * 2;
+                const newx = Math.cos(resultingAngle);
+                // Again, negative sign for cartesian vs canvas coordinates.
+                const newy = -Math.sin(resultingAngle);
+                const magnitude = Math.sqrt(
+                    this.ball.motions.linear.dx ** 2 +
+                        this.ball.motions.linear.dy ** 2
+                );
+                this.ball.motions.linear.setVelocity(
+                    newx * magnitude,
+                    newy * magnitude
+                );
+            } else {
+                this.ball.motions.linear.bounceY();
             }
-            this.ball.motions.linear.bounceY();
         }
     }
     ballBrickInteraction() {
@@ -193,9 +246,9 @@ export class Game {
         }
     }
     keyDownHandler = (key: KeyboardEvent) => {
-        if (key.key === "ArrowRight") {
+        if (["ArrowRight", "d"].includes(key.key)) {
             this.rightKeyPressed = true;
-        } else if (key.key === "ArrowLeft") {
+        } else if (["ArrowLeft", "a"].includes(key.key)) {
             this.leftKeyPressed = true;
         } else if (key.key === " ") {
             if (this.drawTimer) {
@@ -211,9 +264,9 @@ export class Game {
         this.updateControlled();
     };
     keyUpHandler = (key: KeyboardEvent) => {
-        if (key.key === "ArrowRight") {
+        if (["ArrowRight", "d"].includes(key.key)) {
             this.rightKeyPressed = false;
-        } else if (key.key === "ArrowLeft") {
+        } else if (["ArrowLeft", "a"].includes(key.key)) {
             this.leftKeyPressed = false;
         }
         this.updateControlled();
@@ -253,7 +306,7 @@ export class Game {
 
 // The game framework
 
-abstract class CanvasObject {
+export abstract class CanvasObject {
     motions: {
         linear?: LinearMotion;
     };
@@ -417,6 +470,9 @@ class Score extends CanvasObject {
     incrementScore() {
         this.score += 10;
     }
+    decrementScoreBy(howMuch: number) {
+        this.score -= howMuch;
+    }
     draw() {
         this.ctx.font = "16px Arial";
         this.ctx.fillStyle = "#0095DD";
@@ -452,4 +508,7 @@ function drawLine(
     ctx.moveTo(x, y);
     ctx.lineTo(u, v);
     ctx.stroke();
+}
+function degrees(radians: number) {
+    return (180 * radians) / Math.PI;
 }

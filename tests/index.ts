@@ -1,1 +1,1 @@
-import "./example/example.test.ts";
+import "./example/example.test.tsx";

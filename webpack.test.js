@@ -1,5 +1,5 @@
 module.exports = {
-    mode: "production",
+    mode: "development",
 
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
@@ -7,6 +7,7 @@ module.exports = {
     resolve: {
         extensions: [".ts", ".tsx", ".js"]
     },
+
     entry: "./tests/index.ts",
     module: {
         rules: [
