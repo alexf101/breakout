@@ -25,10 +25,31 @@ module.exports = {
                 enforce: "pre",
                 test: /\.js$/,
                 loader: "source-map-loader"
+            },
+            // Phaser recommendations.
+            {
+                test: [/\.vert$/, /\.frag$/],
+                use: "raw-loader"
+            },
+            {
+                test: /\.(gif|png|jpe?g|svg|xml)$/i,
+                use: "file-loader"
             }
         ]
     },
-
+    // Phaser plugin recommendations.
+    // plugins: [
+    //     new CleanWebpackPlugin(["dist"], {
+    //         root: path.resolve(__dirname, "../")
+    //     }),
+    //     new webpack.DefinePlugin({
+    //         CANVAS_RENDERER: JSON.stringify(true),
+    //         WEBGL_RENDERER: JSON.stringify(true)
+    //     }),
+    //     new HtmlWebpackPlugin({
+    //         template: "./index.html"
+    //     })
+    // ],
     output: {
         filename: "main.js"
     },
@@ -39,6 +60,7 @@ module.exports = {
     // dependencies, which allows browsers to cache those libraries between builds.
     externals: {
         react: "React",
-        "react-dom": "ReactDOM"
+        "react-dom": "ReactDOM",
+        phaser: "Phaser"
     }
 };
