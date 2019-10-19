@@ -15,12 +15,12 @@ class MainScene extends Phaser.Scene {
         this.load.image("ball", "assets/ball.png");
     }
     create() {
+        this.physics.systems.start(Phaser.Physics.Arcade);
         this.ball = this.add.sprite(50, 50, "ball");
+        this.physics.add.existing(this.ball);
+        (this.ball.body as Phaser.Physics.Arcade.Body).setVelocity(60, 60);
     }
-    update() {
-        this.ball.x += 1;
-        this.ball.y += 1;
-    }
+    update() {}
 }
 
 window.DEBUG = true;
@@ -32,7 +32,10 @@ export class Game {
             height: 320,
             type: Phaser.CANVAS,
             parent: div,
-            scene: MainScene
+            scene: MainScene,
+            physics: {
+                default: "arcade"
+            }
         });
     }
     start() {}
