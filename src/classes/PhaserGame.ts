@@ -7,24 +7,26 @@ declare const window: {
 };
 
 class MainScene extends Phaser.Scene {
+    ball: Phaser.GameObjects.Sprite;
     preload() {
         this.game.scale.scaleMode = Phaser.Scale.ScaleModes.ENVELOP;
         this.game.scale.autoCenter = Phaser.Scale.CENTER_BOTH;
-        console.log("this.cameras.main: ", this.cameras.main); // XX
         this.cameras.main.setBackgroundColor("#eee");
         this.load.image("ball", "assets/ball.png");
     }
     create() {
-        this.add.sprite(50, 50, "ball");
+        this.ball = this.add.sprite(50, 50, "ball");
     }
-    update() {}
+    update() {
+        this.ball.x += 1;
+        this.ball.y += 1;
+    }
 }
 
 window.DEBUG = true;
 export class Game {
     game: Phaser.Game;
     constructor(div: HTMLDivElement) {
-        console.log("making game"); // XX
         this.game = new Phaser.Game({
             width: 480,
             height: 320,
