@@ -16,9 +16,12 @@ class MainScene extends Phaser.Scene {
     }
     create() {
         this.physics.systems.start(Phaser.Physics.Arcade);
-        this.ball = this.add.sprite(50, 50, "ball");
+        this.ball = this.add.sprite(250, 250, "ball");
         this.physics.add.existing(this.ball);
-        (this.ball.body as Phaser.Physics.Arcade.Body).setVelocity(60, 60);
+        const ballBody = this.ball.body as Phaser.Physics.Arcade.Body;
+        ballBody.setVelocity(60, 60);
+        ballBody.collideWorldBounds = true;
+        ballBody.bounce.set(1);
     }
     update() {}
 }
